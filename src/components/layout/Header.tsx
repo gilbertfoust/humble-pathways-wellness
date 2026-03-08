@@ -9,6 +9,7 @@ const navItems = [
   { path: "/founder", en: "Founder", es: "Fundadora" },
   { path: "/how-it-works", en: "How It Works", es: "Cómo Funciona" },
   { path: "/research", en: "Research", es: "Investigación" },
+  { path: "/hipaa", en: "HIPAA & Privacy", es: "HIPAA y Privacidad" },
   { path: "/community", en: "Community", es: "Comunidad" },
   { path: "/contact", en: "Contact", es: "Contacto" },
 ];
