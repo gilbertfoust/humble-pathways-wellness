@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MemberLayout from "@/components/layout/MemberLayout";
 import { motion } from "framer-motion";
