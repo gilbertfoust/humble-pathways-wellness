@@ -39,6 +39,7 @@ const Footer: React.FC = () => {
               <Link to="/founder" className="hover:opacity-100 transition-opacity">{t("Founder", "Fundadora")}</Link>
               <Link to="/how-it-works" className="hover:opacity-100 transition-opacity">{t("How It Works", "Cómo Funciona")}</Link>
               <Link to="/research" className="hover:opacity-100 transition-opacity">{t("Research", "Investigación")}</Link>
+              <Link to="/hipaa" className="hover:opacity-100 transition-opacity">{t("HIPAA & Privacy", "HIPAA y Privacidad")}</Link>
               <Link to="/contact" className="hover:opacity-100 transition-opacity">{t("Contact", "Contacto")}</Link>
             </div>
           </div>

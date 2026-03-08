@@ -36,6 +36,7 @@ const App = () => (
             <Route path="/founder" element={<Founder />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/research" element={<Research />} />
+            <Route path="/hipaa" element={<HipaaCompliance />} />
             <Route path="/community" element={<Community />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
