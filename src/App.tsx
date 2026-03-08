@@ -9,6 +9,7 @@ import About from "./pages/About";
 import Founder from "./pages/Founder";
 import HowItWorks from "./pages/HowItWorks";
 import Research from "./pages/Research";
+import HipaaCompliance from "./pages/HipaaCompliance";
 import Community from "./pages/Community";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
