@@ -4,6 +4,7 @@ import MemberLayout from "@/components/layout/MemberLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Leaf, AlertTriangle, Phone, ExternalLink, Save } from "lucide-react";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   id: string;
@@ -27,37 +28,96 @@ const starterPromptsEs = [
   "¿Qué parte de tu propósito se siente más viva hoy?",
 ];
 
-const aiResponses: Record<string, { en: string; es: string }> = {
-  default: {
-    en: "Thank you for sharing that. I'm here with you. Can you tell me a little more about what that feels like in your body right now — any tension, heaviness, or warmth?",
-    es: "Gracias por compartir eso. Estoy aquí contigo. ¿Puedes contarme un poco más sobre cómo se siente eso en tu cuerpo ahora mismo — alguna tensión, pesadez o calor?"
-  },
-  heavy: {
-    en: "That heaviness is real, and it makes sense given everything you carry. You don't have to unpack it all right now. What's one small thing that might help you feel even slightly lighter today?",
-    es: "Esa pesadez es real, y tiene sentido dado todo lo que cargas. No tienes que desempacar todo ahora mismo. ¿Cuál es una pequeña cosa que podría ayudarte a sentirte aunque sea un poco más ligero/a hoy?"
-  },
-  boundaries: {
-    en: "Setting boundaries is one of the most courageous things we can do, especially when we've been taught that saying 'yes' is the same as caring. What boundary would your future self thank you for setting this week?",
-    es: "Establecer límites es una de las cosas más valientes que podemos hacer, especialmente cuando nos han enseñado que decir 'sí' es lo mismo que cuidar. ¿Qué límite te agradecería tu yo futuro por establecer esta semana?"
-  },
-  grounded: {
-    en: "I love that you're noticing what grounds you. That awareness is a practice in itself. What does that grounding feel like — is it a person, a place, a routine, or something else?",
-    es: "Me encanta que estés notando lo que te arraiga. Esa conciencia es una práctica en sí misma. ¿Cómo se siente ese arraigo — es una persona, un lugar, una rutina o algo más?"
-  },
-  purpose: {
-    en: "That's beautiful. When our purpose feels alive, everything else becomes a little more bearable. What would it look like to give that part of yourself more room this week?",
-    es: "Eso es hermoso. Cuando nuestro propósito se siente vivo, todo lo demás se vuelve un poco más soportable. ¿Cómo se vería darle más espacio a esa parte de ti esta semana?"
-  },
-};
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reflection-chat`;
 
-const getAIResponse = (message: string, lang: "en" | "es"): string => {
-  const lower = message.toLowerCase();
-  if (lower.includes("heavy") || lower.includes("pesad")) return aiResponses.heavy[lang];
-  if (lower.includes("boundar") || lower.includes("límite") || lower.includes("gentle")) return aiResponses.boundaries[lang];
-  if (lower.includes("grounded") || lower.includes("pies en la tierra")) return aiResponses.grounded[lang];
-  if (lower.includes("purpose") || lower.includes("propósito") || lower.includes("alive") || lower.includes("viva")) return aiResponses.purpose[lang];
-  return aiResponses.default[lang];
-};
+type Msg = { role: "user" | "assistant"; content: string };
+
+async function streamChat({
+  messages,
+  onDelta,
+  onDone,
+  onError,
+}: {
+  messages: Msg[];
+  onDelta: (deltaText: string) => void;
+  onDone: () => void;
+  onError: (error: string) => void;
+}) {
+  const resp = await fetch(CHAT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  if (!resp.ok) {
+    const errorData = await resp.json().catch(() => ({}));
+    onError(errorData.error || "Something went wrong. Please try again.");
+    return;
+  }
+
+  if (!resp.body) {
+    onError("No response received.");
+    return;
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let textBuffer = "";
+  let streamDone = false;
+
+  while (!streamDone) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    textBuffer += decoder.decode(value, { stream: true });
+
+    let newlineIndex: number;
+    while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+      let line = textBuffer.slice(0, newlineIndex);
+      textBuffer = textBuffer.slice(newlineIndex + 1);
+
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (line.startsWith(":") || line.trim() === "") continue;
+      if (!line.startsWith("data: ")) continue;
+
+      const jsonStr = line.slice(6).trim();
+      if (jsonStr === "[DONE]") {
+        streamDone = true;
+        break;
+      }
+
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+        if (content) onDelta(content);
+      } catch {
+        textBuffer = line + "\n" + textBuffer;
+        break;
+      }
+    }
+  }
+
+  // Final flush
+  if (textBuffer.trim()) {
+    for (let raw of textBuffer.split("\n")) {
+      if (!raw) continue;
+      if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+      if (raw.startsWith(":") || raw.trim() === "") continue;
+      if (!raw.startsWith("data: ")) continue;
+      const jsonStr = raw.slice(6).trim();
+      if (jsonStr === "[DONE]") continue;
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+        if (content) onDelta(content);
+      } catch { /* ignore */ }
+    }
+  }
+
+  onDone();
+}
 
 const ReflectionChat: React.FC = () => {
   const { lang, t } = useLanguage();
@@ -72,28 +132,48 @@ const ReflectionChat: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isTyping) return;
     const userMsg: Message = { id: Date.now().toString(), role: "user", content: text.trim() };
-    setMessages((prev) => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInput("");
     setIsTyping(true);
 
-    // Check for safety keywords
+    // Check for safety keywords client-side for immediate response
     const lower = text.toLowerCase();
     const safetyKeywords = ["suicide", "kill myself", "hurt myself", "suicidio", "matarme", "hacerme daño", "end it all", "don't want to live", "no quiero vivir"];
     if (safetyKeywords.some((kw) => lower.includes(kw))) {
       setShowSafety(true);
-      setIsTyping(false);
-      return;
     }
 
-    setTimeout(() => {
-      const response = getAIResponse(text, lang);
-      const assistantMsg: Message = { id: (Date.now() + 1).toString(), role: "assistant", content: response };
-      setMessages((prev) => [...prev, assistantMsg]);
+    let assistantSoFar = "";
+    const upsertAssistant = (nextChunk: string) => {
+      assistantSoFar += nextChunk;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+        }
+        return [...prev, { id: (Date.now() + 1).toString(), role: "assistant", content: assistantSoFar }];
+      });
+    };
+
+    try {
+      await streamChat({
+        messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
+        onDelta: (chunk) => upsertAssistant(chunk),
+        onDone: () => setIsTyping(false),
+        onError: (error) => {
+          toast.error(error);
+          setIsTyping(false);
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error(t("Something went wrong. Please try again.", "Algo salió mal. Intenta de nuevo."));
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleSave = () => {
@@ -201,12 +281,18 @@ const ReflectionChat: React.FC = () => {
                   ? "bg-primary text-primary-foreground rounded-br-md"
                   : "bg-card border border-border text-foreground rounded-bl-md"
               }`}>
-                {msg.content}
+                {msg.role === "assistant" ? (
+                  <div className="prose prose-sm prose-stone max-w-none">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  msg.content
+                )}
               </div>
             </motion.div>
           ))}
 
-          {isTyping && (
+          {isTyping && messages[messages.length - 1]?.role !== "assistant" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
               <div className="bg-card border border-border rounded-2xl rounded-bl-md p-4 text-sm text-muted-foreground">
                 <span className="animate-pulse">●</span>
