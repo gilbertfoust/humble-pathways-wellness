@@ -88,7 +88,4 @@ const PromptLibrary: React.FC = () => {
   );
 };
 
-// Need useState import
-import { useState } from "react";
-
 export default PromptLibrary;
