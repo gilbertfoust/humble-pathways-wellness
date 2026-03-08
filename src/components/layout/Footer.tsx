@@ -23,6 +23,14 @@ const Footer: React.FC = () => {
                 "Una iniciativa de bienestar centrada en la sanación para trabajadores de primera línea y comunidades marginadas. Bajo Humanity Pathways Global (HPG)."
               )}
             </p>
+            <a
+              href="https://humanitypathwaysglobal.com/humble-pathways"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 mt-3 text-sm text-gold hover:text-gold-light transition-colors"
+            >
+              {t("Visit us on HPG →", "Visítanos en HPG →")}
+            </a>
           </div>
           <div>
             <h4 className="font-heading text-lg font-semibold mb-4">{t("Navigate", "Navegar")}</h4>
