@@ -134,6 +134,14 @@ const Index: React.FC = () => {
             <Link to="/auth" className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-primary-foreground text-foreground font-semibold text-lg hover:bg-gold-light transition-colors">
               {t("Get Started Free", "Comienza Gratis")} <ArrowRight className="w-5 h-5" />
             </Link>
+            <a
+              href="https://humanitypathwaysglobal.com/humble-pathways"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-lg border border-primary-foreground/30 text-primary-foreground font-semibold text-lg hover:bg-primary-foreground/10 transition-colors"
+            >
+              {t("Learn More at HPG", "Conoce Más en HPG")} <ArrowRight className="w-5 h-5" />
+            </a>
           </motion.div>
         </div>
       </section>
