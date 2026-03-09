@@ -73,6 +73,9 @@ const App = () => (
               <Route path="/settings" element={
                 <ProtectedRoute><MemberSettings /></ProtectedRoute>
               } />
+              <Route path="/clinician" element={
+                <ProtectedRoute><ClinicianHub /></ProtectedRoute>
+              } />
 
               {/* Admin routes */}
               <Route path="/admin" element={
