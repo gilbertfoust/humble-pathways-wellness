@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Founder from "./pages/Founder";
@@ -22,6 +23,11 @@ import PromptLibrary from "./pages/PromptLibrary";
 import ResourceHub from "./pages/ResourceHub";
 import SavedReflections from "./pages/SavedReflections";
 import MemberSettings from "./pages/MemberSettings";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminPrompts from "./pages/admin/AdminPrompts";
+import AdminResources from "./pages/admin/AdminResources";
+import AdminStats from "./pages/admin/AdminStats";
+import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,7 +53,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               
-              {/* Protected routes */}
+              {/* Protected member routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute><Dashboard /></ProtectedRoute>
               } />
@@ -65,6 +71,23 @@ const App = () => (
               } />
               <Route path="/settings" element={
                 <ProtectedRoute><MemberSettings /></ProtectedRoute>
+              } />
+
+              {/* Admin routes */}
+              <Route path="/admin" element={
+                <AdminRoute><AdminDashboard /></AdminRoute>
+              } />
+              <Route path="/admin/prompts" element={
+                <AdminRoute><AdminPrompts /></AdminRoute>
+              } />
+              <Route path="/admin/resources" element={
+                <AdminRoute><AdminResources /></AdminRoute>
+              } />
+              <Route path="/admin/stats" element={
+                <AdminRoute><AdminStats /></AdminRoute>
+              } />
+              <Route path="/admin/settings" element={
+                <AdminRoute><AdminSettings /></AdminRoute>
               } />
               
               <Route path="*" element={<NotFound />} />
