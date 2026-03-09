@@ -1,11 +1,12 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LayoutDashboard, MessageCircle, BookOpen, FolderHeart, Archive, Settings, LogOut, Globe } from "lucide-react";
+import { LayoutDashboard, MessageCircle, BookOpen, FolderHeart, Archive, Settings, LogOut, Globe, Stethoscope } from "lucide-react";
 
 const navItems = [
   { path: "/dashboard", icon: LayoutDashboard, en: "Dashboard", es: "Panel" },
   { path: "/reflection", icon: MessageCircle, en: "Reflect", es: "Reflexionar" },
+  { path: "/clinician", icon: Stethoscope, en: "Clinician Hub", es: "Centro Clínico" },
   { path: "/prompts", icon: BookOpen, en: "Prompts", es: "Indicaciones" },
   { path: "/resources", icon: FolderHeart, en: "Resources", es: "Recursos" },
   { path: "/saved", icon: Archive, en: "Saved", es: "Guardado" },

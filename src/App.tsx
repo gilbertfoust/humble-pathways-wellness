@@ -19,6 +19,7 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import ReflectionChat from "./pages/ReflectionChat";
+import ClinicianHub from "./pages/ClinicianHub";
 import PromptLibrary from "./pages/PromptLibrary";
 import ResourceHub from "./pages/ResourceHub";
 import SavedReflections from "./pages/SavedReflections";
@@ -71,6 +72,9 @@ const App = () => (
               } />
               <Route path="/settings" element={
                 <ProtectedRoute><MemberSettings /></ProtectedRoute>
+              } />
+              <Route path="/clinician" element={
+                <ProtectedRoute><ClinicianHub /></ProtectedRoute>
               } />
 
               {/* Admin routes */}
