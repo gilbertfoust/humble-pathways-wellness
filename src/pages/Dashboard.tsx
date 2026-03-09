@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import MemberLayout from "@/components/layout/MemberLayout";
 import { motion } from "framer-motion";
-import { Sun, Battery, Brain, MessageCircle, ArrowRight, Leaf, Shield, Heart, Compass } from "lucide-react";
+import { Sun, Battery, Brain, MessageCircle, ArrowRight, Leaf, Shield, Heart, Compass, Settings } from "lucide-react";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
