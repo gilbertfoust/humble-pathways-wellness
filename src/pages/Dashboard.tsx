@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import MemberLayout from "@/components/layout/MemberLayout";
 import { motion } from "framer-motion";
-import { Sun, Battery, Brain, MessageCircle, ArrowRight, Leaf, Shield, Heart, Compass } from "lucide-react";
+import { Sun, Battery, Brain, MessageCircle, ArrowRight, Leaf, Shield, Heart, Compass, Settings } from "lucide-react";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
@@ -25,12 +26,30 @@ const reflectionPaths = [
 
 const Dashboard: React.FC = () => {
   const { t } = useLanguage();
+  const { isAdmin } = useAdminCheck();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [energy, setEnergy] = useState(3);
   const [stress, setStress] = useState(3);
 
   return (
     <MemberLayout>
+      {/* Admin Banner */}
+      {isAdmin && (
+        <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.4 }}
+          className="mb-6">
+          <Link to="/admin" className="flex items-center gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+              <Settings className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-foreground">{t("Admin Dashboard", "Panel de Admin")}</p>
+              <p className="text-sm text-muted-foreground">{t("Manage prompts, resources, and view analytics", "Gestionar indicaciones, recursos y ver analíticas")}</p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-primary" />
+          </Link>
+        </motion.div>
+      )}
+
       {/* Welcome */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }}
         className="mb-8">
