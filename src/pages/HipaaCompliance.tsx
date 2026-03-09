@@ -2,12 +2,119 @@ import React from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Layout from "@/components/layout/Layout";
 import { motion } from "framer-motion";
-import { Shield, Lock, Brain, ClipboardCheck, FileCheck, Users, Server, Key, Timer, Database, CheckCircle } from "lucide-react";
+import { Shield, Lock, Brain, ClipboardCheck, FileCheck, Users, Server, Key, Timer, Database, CheckCircle, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import jsPDF from "jspdf";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
 const HipaaCompliance: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    const addText = (text: string, fontSize: number, isBold: boolean = false, color: [number, number, number] = [0, 0, 0]) => {
+      doc.setFontSize(fontSize);
+      doc.setFont("helvetica", isBold ? "bold" : "normal");
+      doc.setTextColor(...color);
+      const lines = doc.splitTextToSize(text, maxWidth);
+      doc.text(lines, margin, y);
+      y += lines.length * (fontSize * 0.4) + 4;
+    };
+
+    const addSection = (title: string, content: string[]) => {
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      }
+      addText(title, 14, true, [75, 85, 72]);
+      content.forEach((para) => {
+        addText(para, 10, false);
+      });
+      y += 6;
+    };
+
+    // Header
+    addText("HUMBLE PATHWAYS", 24, true, [75, 85, 72]);
+    addText("HIPAA Compliance & Data Privacy Overview", 16, true, [107, 87, 59]);
+    y += 4;
+    addText("Prepared for: Mental Health Clinicians, Health Systems, and Psychiatric Facilities", 10, false, [100, 100, 100]);
+    y += 10;
+
+    addText("At Humble Pathways, we recognize that mental health data is among the most sensitive information in the healthcare ecosystem. Our platform is engineered to meet and exceed the HIPAA Security and Privacy Rule requirements, providing clinicians with a secure environment for AI-assisted care.", 11, false);
+    y += 8;
+
+    // Section 1
+    addSection("1. Legal Accountability (The BAA)", [
+      "Humble Pathways operates as a Business Associate under HIPAA law.",
+      "The Guarantee: We provide a signed Business Associate Agreement (BAA) to all institutional partners. This document contractually binds Humble Pathways to the federal standards of data protection, ensuring we are legally liable for the safety of the PHI we process.",
+      "Total Coverage: Our entire technical ecosystem—from data storage to processing—is covered by matching BAAs, ensuring no \"gaps\" in the legal chain of custody.",
+    ]);
+
+    // Section 2
+    addSection("2. Technical Safeguards & Data Hardening", [
+      "We utilize \"Secure-by-Design\" principles to ensure that clinician and patient data remains private and protected.",
+      "Encryption Standards: All Protected Health Information (PHI) is encrypted at rest using AES-256 and in transit via TLS 1.2+. Data is never stored or transmitted in plain text.",
+      "Clinician Data Isolation: Our architecture uses Row-Level Security. This creates a digital \"silo\" for every clinic or ward; it is technically impossible for a clinician from one department to view data belonging to another.",
+      "MFA Enforcement: To prevent unauthorized access via stolen credentials, Humble Pathways enforces Multi-Factor Authentication (MFA) for every clinician login.",
+    ]);
+
+    // Section 3
+    addSection("3. AI Ethics & Clinical Privacy", [
+      "Because we are an AI-powered platform, we take extra steps to ensure \"clinical hygiene\".",
+      "No Training on PHI: Humble Pathways does not use patient data or clinical notes to train general AI models. Your data stays within your secure instance.",
+      "De-identification: Our AI processing is designed to minimize the use of identifiers, focusing strictly on the clinical narrative required for the task.",
+      "Psychotherapy Note Protection: We recognize the heightened sensitivity of process notes. Our system allows for the separation of psychotherapy notes from the general medical record, as suggested by HIPAA guidelines.",
+    ]);
+
+    // Section 4
+    addSection("4. Auditability & Oversight", [
+      "We provide the transparency required for institutional oversight and hospital compliance audits.",
+      "Access Logs: Every instance of data access, modification, or deletion is recorded in an immutable audit log.",
+      "Session Security: Our app includes automatic session timeouts, a critical feature for clinicians using shared workstations in psychiatric wards or hospital hallways.",
+    ]);
+
+    // Compliance Summary Table
+    if (y > 200) {
+      doc.addPage();
+      y = 20;
+    }
+    addText("Summary of Compliance Markers", 14, true, [75, 85, 72]);
+    y += 4;
+
+    const tableData = [
+      ["Legal", "Signed BAA provided to all partner organizations."],
+      ["Integrity", "Advanced checksums to ensure data hasn't been altered."],
+      ["Access", "Strict Role-Based Access Control (RBAC) and MFA."],
+      ["Transmission", "End-to-end encrypted tunnels for all communication."],
+      ["Availability", "Geo-redundant backups with Point-in-Time recovery."],
+    ];
+
+    tableData.forEach(([req, impl], i) => {
+      doc.setFillColor(i % 2 === 0 ? 245 : 255, i % 2 === 0 ? 245 : 255, i % 2 === 0 ? 240 : 255);
+      doc.rect(margin, y - 4, maxWidth, 12, "F");
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(50, 50, 50);
+      doc.text(req, margin + 2, y + 3);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      doc.text(impl, margin + 45, y + 3);
+      y += 12;
+    });
+
+    y += 10;
+    doc.setFontSize(9);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`© ${new Date().getFullYear()} Humble Pathways · Humanity Pathways Global`, margin, y);
+
+    doc.save("Humble-Pathways-HIPAA-Compliance.pdf");
+  };
 
   const complianceMarkers = [
     { label: t("Legal", "Legal"), value: t("Signed BAA provided to all partner organizations.", "BAA firmado proporcionado a todas las organizaciones asociadas.") },
@@ -32,12 +139,16 @@ const HipaaCompliance: React.FC = () => {
             <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">
               {t("Your data is sacred. We treat it that way.", "Tus datos son sagrados. Los tratamos así.")}
             </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
               {t(
                 "Prepared for mental health clinicians, health systems, and psychiatric facilities. Our platform is engineered to meet and exceed HIPAA Security and Privacy Rule requirements.",
                 "Preparado para clínicos de salud mental, sistemas de salud e instalaciones psiquiátricas. Nuestra plataforma está diseñada para cumplir y superar los requisitos de las reglas de seguridad y privacidad de HIPAA."
               )}
             </p>
+            <Button onClick={generatePDF} className="gap-2">
+              <Download className="w-4 h-4" />
+              {t("Download PDF for Institutional Partners", "Descargar PDF para Socios Institucionales")}
+            </Button>
           </motion.div>
         </div>
       </section>
