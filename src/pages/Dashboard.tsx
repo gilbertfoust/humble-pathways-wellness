@@ -26,6 +26,7 @@ const reflectionPaths = [
 
 const Dashboard: React.FC = () => {
   const { t } = useLanguage();
+  const { isAdmin } = useAdminCheck();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [energy, setEnergy] = useState(3);
   const [stress, setStress] = useState(3);
