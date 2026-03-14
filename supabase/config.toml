@@ -2,3 +2,5 @@ project_id = "ufvalayydkwvdoncjruu"
 
 [functions.reflection-chat]
 verify_jwt = false
+[functions.clinician-chat]
+verify_jwt = false

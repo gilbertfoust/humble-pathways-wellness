@@ -44,9 +44,9 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const AI_GATEWAY_API_KEY = Deno.env.get("AI_GATEWAY_API_KEY") ?? Deno.env.get("LOVABLE_API_KEY");
+    if (!AI_GATEWAY_API_KEY) {
+      throw new Error("AI_GATEWAY_API_KEY is not configured in Supabase Edge Function secrets");
     }
 
     const response = await fetch(
@@ -54,7 +54,7 @@ serve(async (req) => {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${AI_GATEWAY_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -73,6 +73,14 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (response.status === 401 || response.status === 403) {
+        const t = await response.text();
+        console.error("AI gateway auth error:", response.status, t);
+        return new Response(
+          JSON.stringify({ error: "Invalid AI gateway API key. Configure AI_GATEWAY_API_KEY in Supabase secrets." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (response.status === 402) {
